@@ -1,0 +1,140 @@
+{% extends 'layouts/main.html' %}
+{% block title %}{{ artist.name }} | Artist{% endblock %}
+{% block content %}
+<style>
+	.table-primary,
+	.table-primary > th,
+	.table-primary > td {
+	background-color: #b8daff;
+	}
+
+	.table-primary th,
+	.table-primary td,
+	.table-primary thead th,
+	.table-primary tbody + tbody {
+	border-color: #7abaff;
+	}
+
+	.table-hover .table-primary:hover {
+	background-color: #9fcdff;
+	}
+
+	.table-hover .table-primary:hover > td,
+	.table-hover .table-primary:hover > th {
+	background-color: #9fcdff;
+	}
+</style>
+<div class="row">
+	<div class="col-sm-6">
+		<h1 class="monospace">
+			{{ artist.name }}
+		</h1>
+		<p class="subtitle">
+			ID: {{ artist.id }}
+		</p>
+		<div class="genres">
+			{% for genre in artist.genres %}
+			<span class="genre">{{ genre }}</span>
+			{% endfor %}
+		</div>
+		<p>
+			<i class="fas fa-globe-americas"></i> {{ artist.city }}, {{ artist.state }}
+		</p>
+		<p>
+			<i class="fas fa-phone-alt"></i> {% if artist.phone %}{{ artist.phone }}{% else %}No Phone{% endif %}
+        </p>
+        <p>
+			<i class="fas fa-link"></i> {% if artist.website %}<a href="{{ artist.website }}" target="_blank">{{ artist.website }}</a>{% else %}No Website{% endif %}
+		</p>
+		<p>
+			<i class="fab fa-facebook-f"></i> {% if artist.facebook_link %}<a href="{{ artist.facebook_link }}" target="_blank">{{ artist.facebook_link }}</a>{% else %}No Facebook Link{% endif %}
+        </p>
+		<p>
+			<i class="fab fa-globe-americas"></i><b>Available for Booking:</b> <br><span class="genre">From</span> {{ artist.book_from|datetime('full') }} <br><span class="genre">Till</span> {{ artist.book_till|datetime('full')}}
+		</p>
+		{% if artist.seeking_venue %}
+		<div class="seeking">
+			<p class="lead">Currently seeking performance venues</p>
+			<div class="description">
+				<i class="fas fa-quote-left"></i> {{ artist.seeking_description }} <i class="fas fa-quote-right"></i>
+			</div>
+		</div>
+		{% else %}	
+		<p class="not-seeking">
+			<i class="fas fa-moon"></i> Not currently seeking performance venues
+		</p>
+		{% endif %}
+	</div>
+	<div class="col-sm-6">
+		<img src="{{ artist.image_link }}" alt="Venue Image" />
+	</div>
+</div>
+<section>
+	<h2 class="monospace">{{ artist.upcoming_shows_count }} Upcoming {% if artist.upcoming_shows_count == 1 %}Show{% else %}Shows{% endif %}</h2>
+	<div class="row">
+		{%for show in artist.upcoming_shows %}
+		<div class="col-sm-4">
+			<div class="tile tile-show">
+				<img src="{{ show.venue_image_link }}" alt="Show Venue Image" />
+				<h5><a href="/venues/{{ show.venue_id }}">{{ show.venue_name }}</a></h5>
+				<h6>{{ show.start_time|datetime('full') }}</h6>
+			</div>
+		</div>
+		{% endfor %}
+	</div>
+</section>
+<section>
+	<h2 class="monospace">{{ artist.past_shows_count }} Past {% if artist.past_shows_count == 1 %}Show{% else %}Shows{% endif %}</h2>
+	<div class="row">
+		{%for show in artist.past_shows %}
+		<div class="col-sm-4">
+			<div class="tile tile-show">
+				<img src="{{ show.venue_image_link }}" alt="Show Venue Image" />
+				<h5><a href="/venues/{{ show.venue_id }}">{{ show.venue_name }}</a></h5>
+				<h6>{{ show.start_time|datetime('full') }}</h6>
+			</div>
+		</div>
+		{% endfor %}
+	</div>
+</section>
+<section>
+	<h2 class="monospace">{{ artist.albums_count }} Albums by Artist</h2>
+	<div class="row">
+		{% for album in artist.albums %}
+		<div class="col-sm-4">
+			<div class="title title-show">
+				<img src="{{album.cover}}" alt="Album cover" />
+				<h3>{{ album.name }}</h3>
+				<br><br>
+				<h4>Tracks</h4>
+				<table class="table table-stripped table-hover">
+					<tbody>
+					{% for song in album.songs %}
+					<tr data-src="{{ song.url }}" onclick="playtrack(event)"><th>{{ loop.index }}</th><td>{{ song.title }}</td><td>{{ song.duration }}</td></tr>
+					{% endfor %}
+					</tbody>
+				</table>
+			</div>
+			<audio id="player" hidden>
+				Your browser does not support audio
+			</audio>
+		</div>
+		{% endfor %}
+	</div>
+</section>
+
+<a href="/artists/{{ artist.id }}/edit"><button class="btn btn-primary btn-lg">Edit</button></a>
+<script>
+	player = document.getElementById('player')
+	function playtrack(e) {
+		e.preventDefault();
+		let el = e.target.parentNode.closest('tr'), src = el.getAttribute('data-src');
+		el.classList.contains('table-primary')? player.pause() : player.play(player.src=src);
+		try {document.querySelector('tr.table-primary').classList.remove('table-primary');	
+		} catch(e) {}
+		el.classList.add('table-primary');
+	}
+</script>
+
+{% endblock %}
+
